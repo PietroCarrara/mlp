@@ -1,6 +1,6 @@
 
 from lisptypes import LispList, LispNumber, LispSymbol, LispValue
-from utils import StringReader
+from stringreader import StringReader
 
 
 def parse(code: str) -> list[LispValue]:
