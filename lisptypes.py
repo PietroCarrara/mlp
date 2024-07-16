@@ -41,8 +41,14 @@ class LispList(LispValue):
         first, rest = value[0], value[1:]
         return LispNonEmptyList(first, LispList.from_list(rest))
 
+    def to_python_list(self) -> list[LispValue]:
+        raise Exception("not implemented")
+
 
 class LispEmptyList(LispList):
+    def to_python_list(self) -> list[LispValue]:
+        return []
+
     def __eq__(self, value: object) -> bool:
         return isinstance(value, LispEmptyList)
 
@@ -58,6 +64,15 @@ class LispNonEmptyList(LispList):
         super().__init__()
         self.first = first
         self.rest = rest
+
+    def to_python_list(self) -> list[LispValue]:
+        values = [self.first]
+        if isinstance(self.rest, LispList):
+            values.extend(self.rest.to_python_list())
+        else:
+            values.append(self.rest)
+
+        return values
 
     def __eq__(self, value: object) -> bool:
         return isinstance(value, LispNonEmptyList) and value.first == self.first and value.rest == self.rest

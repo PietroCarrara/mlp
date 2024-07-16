@@ -2,7 +2,7 @@ import unittest
 from interpreter import eval
 from lisptypes import LispEmptyList, LispList, LispNumber, LispSymbol
 from parser import parse
-from scope import bind_to_static_scope
+from scope import Scope, bind_to_static_scope
 from screen import Screen, TestScreen
 
 
@@ -72,7 +72,7 @@ class InterpreterTests(unittest.TestCase):
         program = "(list 1 2 (list 3 4) x y)"
 
         ast = parse(program)
-        result = eval(ast, Screen())
+        result = eval(ast, Scope(), Screen())
         self.assertEqual(result, LispList.from_list([
             LispNumber(1),
             LispNumber(2),
@@ -85,7 +85,7 @@ class InterpreterTests(unittest.TestCase):
         program = "(cons 1 (cons 2 (cons (cons 3 (cons 4 ())) (cons x (cons y ())))))"
 
         ast = parse(program)
-        result = eval(ast, Screen())
+        result = eval(ast, Scope(), Screen())
         self.assertEqual(result, LispList.from_list([
             LispNumber(1),
             LispNumber(2),
@@ -98,35 +98,35 @@ class InterpreterTests(unittest.TestCase):
         program = "(defun double (x) (+ x x)) (double 7)"
 
         ast = parse(program)
-        result = eval(ast, Screen())
+        result = eval(ast, Scope(), Screen())
         self.assertEqual(result, LispNumber(14))
 
     def test_symbols_are_evaluated(self):
         program = "(let x 10) (let y 11) (let z (+ x y)) z"
 
         ast = parse(program)
-        result = eval(ast, Screen())
+        result = eval(ast, Scope(), Screen())
         self.assertEqual(result, LispNumber(21))
 
     def test_sum_with_symbols(self):
         program = "(let x 10) (+ x 2)"
 
         ast = parse(program)
-        result = eval(ast, Screen())
+        result = eval(ast, Scope(), Screen())
         self.assertEqual(result, LispNumber(12))
 
     def test_assignment(self):
         program = "(let x 10) (let y 20) (= x y) x"
 
         ast = parse(program)
-        result = eval(ast, Screen())
+        result = eval(ast, Scope(), Screen())
         self.assertEqual(result, LispNumber(20))
 
     def test_empty_list_evals_to_itself(self):
         program = "()"
 
         ast = parse(program)
-        result = eval(ast, Screen())
+        result = eval(ast, Scope(), Screen())
         self.assertEqual(result, LispEmptyList())
 
 
@@ -138,7 +138,7 @@ class FinalInterpreterTests(unittest.TestCase):
         screen = TestScreen()
 
         ast = parse(program)
-        eval(ast, screen)
+        eval(ast, Scope(), screen)
         self.assertEqual(screen.get_contents(), "3\n11\n3\n11")
 
     def test_dynamic_scope(self):
@@ -149,7 +149,7 @@ class FinalInterpreterTests(unittest.TestCase):
 
         ast = parse(program)
         ast = bind_to_static_scope(ast)
-        eval(ast, screen)
+        eval(ast, Scope(), screen)
         self.assertEqual(screen.get_contents(), "1\n3\n5\n8")
 
 
