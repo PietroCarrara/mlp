@@ -69,7 +69,7 @@ class ParserTests(unittest.TestCase):
 
 class InterpreterTests(unittest.TestCase):
     def test_list_is_created(self):
-        program = "(list 1 2 (list 3 4) x y)"
+        program = "(list 1 2 (list 3 4) 5 6)"
 
         ast = parse(program)
         result = eval(ast, Scope(), Screen())
@@ -77,8 +77,8 @@ class InterpreterTests(unittest.TestCase):
             LispNumber(1),
             LispNumber(2),
             LispList.from_list([LispNumber(3), LispNumber(4)]),
-            LispSymbol("x"),
-            LispSymbol("y"),
+            LispNumber(5),
+            LispNumber(6),
         ]))
 
     def test_list_is_created_with_cons(self):
