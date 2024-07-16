@@ -3,8 +3,17 @@ from lisptypes import LispList, LispNumber, LispSymbol, LispValue
 from utils import StringReader
 
 
-def parse(code: str) -> LispValue:
-    return parse_single_expression(StringReader(code))
+def parse(code: str) -> list[LispValue]:
+    reader = StringReader(code)
+    result: list[LispValue] = []
+    while True:
+        reader.skip_whitespaces()
+        if reader.size() > 0:
+            result.append(parse_single_expression(reader))
+        else:
+            break
+
+    return result
 
 
 def parse_single_expression(reader: StringReader) -> LispValue:
