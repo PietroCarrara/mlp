@@ -17,6 +17,16 @@ class ParserTests(unittest.TestCase):
             LispNumber(2),
         ]))
 
+    def test_basic_subtraction(self):
+        program = "(- 5 3 2)"
+        ast = parse(program)[0]
+        self.assertEqual(ast, LispList.from_list([
+            LispSymbol("-"),
+            LispNumber(5),
+            LispNumber(3),
+            LispNumber(2),
+        ]))
+
     def test_nested_program(self):
         program = "(+ (* 5 (f x y z)) 3 2)"
         ast = parse(program)[0]
@@ -59,7 +69,20 @@ class ParserTests(unittest.TestCase):
 
 class InterpreterTests(unittest.TestCase):
     def test_list_is_created(self):
-        program = "(list 1 2 (3 4) x y)"
+        program = "(list 1 2 (list 3 4) x y)"
+
+        ast = parse(program)
+        result = eval(ast, Screen())
+        self.assertEqual(result, LispList.from_list([
+            LispNumber(1),
+            LispNumber(2),
+            LispList.from_list([LispNumber(3), LispNumber(4)]),
+            LispSymbol("x"),
+            LispSymbol("y"),
+        ]))
+
+    def test_list_is_created_with_cons(self):
+        program = "(cons 1 (cons 2 (cons (cons 3 (cons 4 ())) (cons x (cons y ())))))"
 
         ast = parse(program)
         result = eval(ast, Screen())
@@ -78,33 +101,33 @@ class InterpreterTests(unittest.TestCase):
         result = eval(ast, Screen())
         self.assertEqual(result, LispNumber(14))
 
-    def test_symbols_are_not_evaluated(self):
-        program = "(let x 10) x"
+    def test_symbols_are_evaluated(self):
+        program = "(let x 10) (let y 11) (let z (+ x y)) z"
 
         ast = parse(program)
         result = eval(ast, Screen())
-        self.assertEqual(result, LispSymbol("x"))
+        self.assertEqual(result, LispNumber(21))
 
-    def test_symbols_are_coerced_when_summed(self):
-        program = "(let x 10) (+ x 0)"
+    def test_sum_with_symbols(self):
+        program = "(let x 10) (+ x 2)"
 
         ast = parse(program)
         result = eval(ast, Screen())
-        self.assertEqual(result, LispNumber(10))
+        self.assertEqual(result, LispNumber(12))
 
-    def test_symbols_are_coerced_when_assigned(self):
-        program = "(let x 10) (let y 20) (= x y) (+ x 0)"
+    def test_assignment(self):
+        program = "(let x 10) (let y 20) (= x y) x"
 
         ast = parse(program)
         result = eval(ast, Screen())
         self.assertEqual(result, LispNumber(20))
 
-    def test_symbols_are_coerced_when_assigned_via_declaration(self):
-        program = "(let x 11) (let y x) (+ x 0)"
+    def test_empty_list_evals_to_itself(self):
+        program = "()"
 
         ast = parse(program)
         result = eval(ast, Screen())
-        self.assertEqual(result, LispNumber(11))
+        self.assertEqual(result, LispEmptyList())
 
 
 class FinalInterpreterTests(unittest.TestCase):
