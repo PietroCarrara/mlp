@@ -10,6 +10,12 @@ class LispSymbol(LispValue):
     def __eq__(self, value: object) -> bool:
         return isinstance(value, LispSymbol) and value.symbolName == self.symbolName
 
+    def __str__(self) -> str:
+        return self.symbolName
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
 
 class LispNumber(LispValue):
     def __init__(self, numberValue: int) -> None:
@@ -18,6 +24,12 @@ class LispNumber(LispValue):
 
     def __eq__(self, value: object) -> bool:
         return isinstance(value, LispNumber) and value.numberValue == self.numberValue
+
+    def __str__(self) -> str:
+        return self.numberValue.__str__()
+
+    def __repr__(self) -> str:
+        return self.__str__()
 
 
 class LispList(LispValue):
@@ -34,6 +46,12 @@ class LispEmptyList(LispList):
     def __eq__(self, value: object) -> bool:
         return isinstance(value, LispEmptyList)
 
+    def __str__(self) -> str:
+        return "()"
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
 
 class LispNonEmptyList(LispList):
     def __init__(self, first: LispValue, rest: LispValue) -> None:
@@ -43,3 +61,9 @@ class LispNonEmptyList(LispList):
 
     def __eq__(self, value: object) -> bool:
         return isinstance(value, LispNonEmptyList) and value.first == self.first and value.rest == self.rest
+
+    def __str__(self) -> str:
+        return f"({self.first} {self.rest})"
+
+    def __repr__(self) -> str:
+        return self.__str__()
