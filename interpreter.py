@@ -32,9 +32,6 @@ def eval_expression(expr: LispValue, scope: Scope, screen: Screen) -> LispValue:
         if not isinstance(expr.first, LispSymbol):
             raise Exception(
                 f"can't perform function application using '{expr.first}' as a function")
-        if not isinstance(expr.rest, LispList):
-            raise Exception(
-                f"can't perform function application using '{expr.rest}' as arguments")
 
         return eval_function_application(expr.first, expr.rest, scope, screen)
 
@@ -85,7 +82,14 @@ def eval_function_application(name: LispSymbol, arguments: LispList, scope: Scop
                 raise Exception(
                     f"cons needs exactly two arguments, but was called with {args}")
             [first, rest] = args
-            return LispNonEmptyList(eval_expression(first, scope, screen), eval_expression(rest, scope, screen))
+            first = eval_expression(first, scope, screen)
+            rest = eval_expression(rest, scope, screen)
+
+            if not isinstance(rest, LispList):
+                raise Exception(
+                    f"cons expects the second argument to be a list, found {rest}")
+
+            return LispNonEmptyList(first, rest)
 
         case "list":
             items: list[LispValue] = []

@@ -60,18 +60,14 @@ class LispEmptyList(LispList):
 
 
 class LispNonEmptyList(LispList):
-    def __init__(self, first: LispValue, rest: LispValue) -> None:
+    def __init__(self, first: LispValue, rest: LispList) -> None:
         super().__init__()
         self.first = first
         self.rest = rest
 
     def to_python_list(self) -> list[LispValue]:
         values = [self.first]
-        if isinstance(self.rest, LispList):
-            values.extend(self.rest.to_python_list())
-        else:
-            values.append(self.rest)
-
+        values.extend(self.rest.to_python_list())
         return values
 
     def __eq__(self, value: object) -> bool:
