@@ -55,8 +55,16 @@ def eval_function_application(name: LispSymbol, arguments: LispList, scope: Scop
             return LispEmptyList()  # TODO
         case "let":
             return LispEmptyList()  # TODO
+        case "=":
+            return LispEmptyList()  # TODO: Assignment
         case "cons":
-            return LispEmptyList()  # TODO
+            args = arguments.to_python_list()
+            if len(args) != 2:
+                raise Exception(
+                    f"cons needs exactly two arguments, but was called with {args}")
+            [first, rest] = args
+            return LispNonEmptyList(eval_expression(first, scope, screen), eval_expression(rest, scope, screen))
+
         case "list":
             items: list[LispValue] = []
             for item in arguments.to_python_list():

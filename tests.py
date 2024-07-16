@@ -82,6 +82,19 @@ class InterpreterTests(unittest.TestCase):
         ]))
 
     def test_list_is_created_with_cons(self):
+        program = "(cons 1 (cons 2 (cons (cons 3 (cons 4 ())) (cons 5 (cons 6 ())))))"
+
+        ast = parse(program)
+        result = eval(ast, Scope(), Screen())
+        self.assertEqual(result, LispList.from_list([
+            LispNumber(1),
+            LispNumber(2),
+            LispList.from_list([LispNumber(3), LispNumber(4)]),
+            LispNumber(5),
+            LispNumber(6),
+        ]))
+
+    def test_list_is_created_with_cons_using_symbols(self):
         program = "(cons 1 (cons 2 (cons (cons 3 (cons 4 ())) (cons x (cons y ())))))"
 
         ast = parse(program)
