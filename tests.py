@@ -95,7 +95,7 @@ class InterpreterTests(unittest.TestCase):
         ]))
 
     def test_list_is_created_with_cons_using_symbols(self):
-        program = "(cons 1 (cons 2 (cons (cons 3 (cons 4 ())) (cons x (cons y ())))))"
+        program = "(let x 5) (let y 6) (cons 1 (cons 2 (cons (cons 3 (cons 4 ())) (cons x (cons y ())))))"
 
         ast = parse(program)
         result = eval(ast, Scope(), Screen())
@@ -103,8 +103,8 @@ class InterpreterTests(unittest.TestCase):
             LispNumber(1),
             LispNumber(2),
             LispList.from_list([LispNumber(3), LispNumber(4)]),
-            LispSymbol("x"),
-            LispSymbol("y"),
+            LispNumber(5),
+            LispNumber(6),
         ]))
 
     def test_function_is_applied(self):
@@ -141,6 +141,13 @@ class InterpreterTests(unittest.TestCase):
         ast = parse(program)
         result = eval(ast, Scope(), Screen())
         self.assertEqual(result, LispEmptyList())
+
+    def test_scope_is_respected(self):
+        program = "(let x (+ 2 2)) (defun foo () (let x 10) (= x 11)) (foo) x"
+
+        ast = parse(program)
+        result = eval(ast, Scope(), Screen())
+        self.assertEqual(result, LispNumber(4))
 
 
 class FinalInterpreterTests(unittest.TestCase):

@@ -54,9 +54,31 @@ def eval_function_application(name: LispSymbol, arguments: LispList, scope: Scop
         case "defun":
             return LispEmptyList()  # TODO
         case "let":
-            return LispEmptyList()  # TODO
+            args = arguments.to_python_list()
+            if len(args) != 2:
+                raise Exception(
+                    f"let needs exactly two arguments, but was called with {args}")
+            [symbol, value] = args
+            if not isinstance(symbol, LispSymbol):
+                raise Exception(
+                    f"can't perform attribution using '{symbol}' as a variable")
+            value = eval_expression(value, scope, screen)
+            scope.create_symbol(symbol, value)
+            return value
+
         case "=":
-            return LispEmptyList()  # TODO: Assignment
+            args = arguments.to_python_list()
+            if len(args) != 2:
+                raise Exception(
+                    f"= needs exactly two arguments, but was called with {args}")
+            [symbol, value] = args
+            if not isinstance(symbol, LispSymbol):
+                raise Exception(
+                    f"can't perform attribution using '{symbol}' as a variable")
+            value = eval_expression(value, scope, screen)
+            scope.set_symbol(symbol, value)
+            return value
+
         case "cons":
             args = arguments.to_python_list()
             if len(args) != 2:
@@ -70,10 +92,15 @@ def eval_function_application(name: LispSymbol, arguments: LispList, scope: Scop
             for item in arguments.to_python_list():
                 items.append(eval_expression(item, scope, screen))
             return LispList.from_list(items)
+
         case "print":
             for arg in arguments.to_python_list():
                 screen.print(str(eval_expression(arg, scope, screen)))
             return LispEmptyList()
+
         case _:
             # TODO: User-defined function
-            return LispEmptyList()
+            scope.begin_block()
+            result = LispEmptyList()
+            scope.end_block()
+            return result
