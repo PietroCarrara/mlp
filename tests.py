@@ -107,6 +107,34 @@ class InterpreterTests(unittest.TestCase):
             LispNumber(6),
         ]))
 
+    def test_basic_addition(self):
+        program = "(+ (+ 3 5) (+ 1 8) 10)"
+
+        ast = parse(program)
+        result = eval(ast, Scope(), Screen())
+        self.assertEqual(result, LispNumber(27))
+
+    def test_basic_subtraction(self):
+        program = "(- (- 20 1) 3 (- 13 9))"
+
+        ast = parse(program)
+        result = eval(ast, Scope(), Screen())
+        self.assertEqual(result, LispNumber(12))
+
+    def test_basic_multiplication(self):
+        program = "(* 1 2 3 4 5)"
+
+        ast = parse(program)
+        result = eval(ast, Scope(), Screen())
+        self.assertEqual(result, LispNumber(120))
+
+    def test_basic_division(self):
+        program = "(/ (+ 10 20) (- 7 2))"
+
+        ast = parse(program)
+        result = eval(ast, Scope(), Screen())
+        self.assertEqual(result, LispNumber(6))
+
     def test_function_is_applied(self):
         program = "(defun double (x) (+ x x)) (double 7)"
 
@@ -163,7 +191,7 @@ class InterpreterTests(unittest.TestCase):
 
 
 class FinalInterpreterTests(unittest.TestCase):
-    def test_static_scope(self):
+    def test_dynamic_scope(self):
         program = ""
         with open("example.lisp") as f:
             program = f.read()
@@ -173,7 +201,7 @@ class FinalInterpreterTests(unittest.TestCase):
         eval(ast, Scope(), screen)
         self.assertEqual(screen.get_contents(), "3\n11\n3\n11")
 
-    def test_dynamic_scope(self):
+    def test_static_scope(self):
         program = ""
         with open("example.lisp") as f:
             program = f.read()
