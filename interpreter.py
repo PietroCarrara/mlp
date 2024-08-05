@@ -44,12 +44,15 @@ def eval_function_application(name: LispSymbol, arguments: LispList, scope: Scop
         case "+":
             operators = arithmetic_helper("addition", arguments, scope, screen)
             return LispNumber(sum(operators))
+        
         case "-":
             operators = arithmetic_helper("subtraction", arguments, scope, screen)
             return LispNumber(reduce((lambda x, y: x - y), operators))
+        
         case "*":
             operators = arithmetic_helper("multiplication", arguments, scope, screen)
             return LispNumber(reduce((lambda x, y: x * y), operators))
+        
         case "/":
             args = arguments.to_python_list()
             if len(args) != 2:
@@ -67,8 +70,22 @@ def eval_function_application(name: LispSymbol, arguments: LispList, scope: Scop
                     f"can't divide a number by zero")
             # Implementing only integer division
             return LispNumber(dividend.numberValue//divisor.numberValue)
+        
         case "defun":
-            return LispEmptyList()  # TODO
+            # Not dealing with duplicated function names
+            args = arguments.to_python_list()
+            if len(args) < 3:
+                raise Exception(
+                    f"function definition expects at least three arguments (foo_name, arguments, body), given {args}")
+            
+            [foo_name, *foo_body] = args
+            if not isinstance(foo_name, LispSymbol):
+                raise Exception(
+                    f"function name must be a symbol, given {foo_name}")
+            
+            scope.create_symbol(foo_name, LispList.from_list(foo_body))
+            return LispEmptyList() # TODO: What is the return of a function definition?
+        
         case "let":
             args = arguments.to_python_list()
             if len(args) != 2:
@@ -122,11 +139,30 @@ def eval_function_application(name: LispSymbol, arguments: LispList, scope: Scop
             return LispEmptyList()
 
         case _:
-            # TODO: User-defined function
+            foo = eval_expression(name, scope, screen)
+            given_args = arguments.to_python_list()
             scope.begin_block()
-            result = LispEmptyList()
-            scope.end_block()
-            return result
+            
+            # TODO: must remove this, foo will always be a list
+            if not isinstance(foo, LispList):
+                raise Exception(
+                    f"This should not happen")
+            
+            foo_args, *foo_body = foo.to_python_list()
+
+            # remove this too, args will always be list
+            if isinstance(foo_args, LispList):
+                foo_args = foo_args.to_python_list()
+                for i in range(len(foo_args)):
+                    a1 = foo_args[i] # scope only works if I do this
+                    if isinstance(a1, LispSymbol):
+                        scope.create_symbol(a1, given_args[i])
+
+                result = eval(foo_body, scope, screen)
+                scope.end_block()
+                return result
+
+            return LispEmptyList()
 
 # Returns a list of the n operands for addition, subtraction and multiplication
 def arithmetic_helper(operation: str, arguments: LispList, scope: Scope, screen: Screen) -> list[int]:
@@ -135,6 +171,6 @@ def arithmetic_helper(operation: str, arguments: LispList, scope: Scope, screen:
         operator = eval_expression(expr, scope, screen)
         if not isinstance(operator, LispNumber):
             raise Exception(
-                f"tried to perform {operation} with a not num types: {operator}")
+                f"tried to perform {operation} with a non num types: {operator}")
         operators.append(operator.numberValue)
     return operators
