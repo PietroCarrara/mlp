@@ -142,6 +142,13 @@ class InterpreterTests(unittest.TestCase):
         result = eval(ast, Scope(), Screen())
         self.assertEqual(result, LispNumber(14))
 
+    def test_nested_functions(self):
+        program = "(defun foo (x) (defun double () (+ x x)) (double)) (foo 7)"
+
+        ast = parse(program)
+        result = eval(ast, Scope(), Screen())
+        self.assertEqual(result, LispNumber(14))
+
     def test_symbols_are_evaluated(self):
         program = "(let x 10) (let y 11) (let z (+ x y)) z"
 
