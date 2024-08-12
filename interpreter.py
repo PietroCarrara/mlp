@@ -84,7 +84,7 @@ def eval_function_application(name: LispSymbol, arguments: LispList, scope: Scop
                     f"function name must be a symbol, given {foo_name}")
             
             scope.create_symbol(foo_name, LispList.from_list(foo_body))
-            return LispEmptyList() # TODO: What is the return of a function definition?
+            return LispEmptyList()
         
         case "let":
             args = arguments.to_python_list()
@@ -139,30 +139,43 @@ def eval_function_application(name: LispSymbol, arguments: LispList, scope: Scop
             return LispEmptyList()
 
         case _:
-            foo = eval_expression(name, scope, screen)
+            foo = scope.read_symbol(name)
             given_args = arguments.to_python_list()
             scope.begin_block()
             
-            # TODO: must remove this, foo will always be a list
             if not isinstance(foo, LispList):
                 raise Exception(
-                    f"This should not happen")
+                    f"Function {name} not defined")
             
             foo_args, *foo_body = foo.to_python_list()
 
-            # remove this too, args will always be list
-            if isinstance(foo_args, LispList):
-                foo_args = foo_args.to_python_list()
-                for i in range(len(foo_args)):
-                    a1 = foo_args[i] # scope only works if I do this
-                    if isinstance(a1, LispSymbol):
-                        scope.create_symbol(a1, given_args[i])
+            # TODO: right now, the test of the function syntax is done here
+            #       not in the definition of the function 'defun'
+            if not isinstance(foo_args, LispList):
+                raise Exception(
+                    f"Bad definition of function {name}, the syntax for defun is: "
+                    + "(defun name (parameter-list) body)")
+            foo_args = foo_args.to_python_list()
 
-                result = eval(foo_body, scope, screen)
-                scope.end_block()
-                return result
+            # Check if user passed the needed number of parameters
+            if len(foo_args) != len(given_args):
+                raise Exception(
+                    f"{name} expects {len(foo_args)} arguments, were given {len(given_args)}")
 
-            return LispEmptyList()
+            for i in range(len(foo_args)):
+                arg = foo_args[i] # scope only works if I do this
+                if not isinstance(arg, LispSymbol):
+                    raise Exception(
+                        f"Bad argument {arg} from function {name}, all arguments must be symbols")
+                
+                # TODO: check if this is necessary, example: (defun show (x) x) (show (+ 1 1)) 
+                # If the user passes an expression as a parameter or variable 
+                eval_arg = eval_expression(given_args[i], scope, screen)
+                scope.create_symbol(arg, eval_arg)
+
+            result = eval(foo_body, scope, screen)
+            scope.end_block()
+            return result
 
 # Returns a list of the n operands for addition, subtraction and multiplication
 def arithmetic_helper(operation: str, arguments: LispList, scope: Scope, screen: Screen) -> list[int]:
