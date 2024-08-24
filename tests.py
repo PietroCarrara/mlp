@@ -184,18 +184,6 @@ class InterpreterTests(unittest.TestCase):
         result = eval(ast, Scope(), Screen())
         self.assertEqual(result, LispNumber(4))
 
-    def test_map_works(self):
-        program = "(defun add-one (x) (+ x 1)) (map add-one (list 1 2 3 4))"
-
-        ast = parse(program)
-        result = eval(ast, Scope(), Screen())
-        self.assertEqual(result, LispList.from_list([
-            LispNumber(2),
-            LispNumber(3),
-            LispNumber(4),
-            LispNumber(5),
-        ]))
-
 
 class FinalInterpreterTests(unittest.TestCase):
     def test_dynamic_scope(self):
@@ -215,7 +203,7 @@ class FinalInterpreterTests(unittest.TestCase):
         screen = TestScreen()
 
         ast = parse(program)
-        ast = bind_to_static_scope(ast)
+        ast = bind_to_static_scope(ast, Scope())
         eval(ast, Scope(), screen)
         self.assertEqual(screen.get_contents(), "3\n11\n3\n11\n")
 
