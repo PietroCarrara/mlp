@@ -207,6 +207,22 @@ class FinalInterpreterTests(unittest.TestCase):
         eval(ast, Scope(), screen)
         self.assertEqual(screen.get_contents(), "3\n11\n3\n11\n")
 
+    def test_my_perfect_code(self):
+        program = """(let x 1)
+                     (let y 1)
+                     (defun sum ()
+                        (print (+ (+ x x) (+ y y))))
+                     (defun main ()
+                        (let x 10)
+                        (let y 20)
+                        (sum))
+                     (main)"""
+        screen = TestScreen()
+        ast = parse(program)
+        ast = bind_to_static_scope(ast, Scope())
+        eval(ast, Scope(), screen)
+        self.assertEqual(screen.get_contents(), "4\n")
+
 
 if __name__ == '__main__':
     

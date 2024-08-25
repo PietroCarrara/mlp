@@ -168,8 +168,6 @@ def eval_function_application(name: LispSymbol, arguments: LispList, scope: Scop
                     raise Exception(
                         f"Bad argument {arg} from function {name}, all arguments must be symbols")
                 
-                # TODO: check if this is necessary, example: (defun show (x) x) (show (+ 1 1)) 
-                # If the user passes an expression as a parameter or variable 
                 eval_arg = eval_expression(given_args[i], scope, screen)
                 scope.create_symbol(arg, eval_arg)
 
