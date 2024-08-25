@@ -74,7 +74,14 @@ class LispNonEmptyList(LispList):
         return isinstance(value, LispNonEmptyList) and value.first == self.first and value.rest == self.rest
 
     def __str__(self) -> str:
-        return f"({self.first} {self.rest})"
+        items = self.to_python_list()
+
+        result = "("
+        for item in items:
+            result += str(item) + " "
+        result = result.strip() + ")"
+
+        return result
 
     def __repr__(self) -> str:
         return self.__str__()

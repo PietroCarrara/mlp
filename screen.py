@@ -1,6 +1,6 @@
 class Screen():
     def print(self, contents: str) -> None:
-        raise Exception("not implemented")
+        print(contents)
 
 
 class TestScreen(Screen):
