@@ -5,25 +5,26 @@ from screen import Screen, TestScreen
 from functools import reduce
 
 saved: bool = False
-ast_backup : list[LispValue]
+ast_backup: list[LispValue]
 code_backup: str
 current_state: LispSymbol
 
 hash_code: dict[str, list[LispValue]] = {}
+
 
 def eval(ast: list[LispValue], scope: Scope, screen: Screen, code: str = "") -> LispValue:
     global ast_backup
     global saved
     global code_backup
     global current_state
-    
+
     if not saved:
         ast_backup = ast
         code_backup = code
         current_state = LispSymbol("global")
         hash_code[current_state.symbolName] = ast
         saved = True
-    
+
     last_value = eval_expression(ast[0], scope, screen)
     for expression in ast[1:]:
         last_value = eval_expression(expression, scope, screen)
@@ -72,15 +73,17 @@ def eval_function_application(name: LispSymbol, arguments: LispList, scope: Scop
         case "+":
             operators = arithmetic_helper("addition", arguments, scope, screen)
             return LispNumber(sum(operators))
-        
+
         case "-":
-            operators = arithmetic_helper("subtraction", arguments, scope, screen)
+            operators = arithmetic_helper(
+                "subtraction", arguments, scope, screen)
             return LispNumber(reduce((lambda x, y: x - y), operators))
-        
+
         case "*":
-            operators = arithmetic_helper("multiplication", arguments, scope, screen)
+            operators = arithmetic_helper(
+                "multiplication", arguments, scope, screen)
             return LispNumber(reduce((lambda x, y: x * y), operators))
-        
+
         case "/":
             args = arguments.to_python_list()
             if len(args) != 2:
@@ -98,23 +101,24 @@ def eval_function_application(name: LispSymbol, arguments: LispList, scope: Scop
                     f"can't divide a number by zero")
             # Implementing only integer division
             return LispNumber(dividend.numberValue//divisor.numberValue)
-        
+
         case "defun":
             # Not dealing with duplicated function names
             args = arguments.to_python_list()
             if len(args) < 3:
                 raise Exception(
                     f"function definition expects at least three arguments (foo_name, arguments, body), given {args}")
-            
+
             [foo_name, *foo_body] = args
             if not isinstance(foo_name, LispSymbol):
                 raise Exception(
                     f"function name must be a symbol, given {foo_name}")
-            
-            scope.create_symbol(foo_name, LispList.from_list(foo_body), SymbolType.FUNCTION)
+
+            scope.create_symbol(foo_name, LispList.from_list(
+                foo_body), SymbolType.FUNCTION)
             hash_code[foo_name.symbolName] = foo_body
             return LispEmptyList()
-        
+
         case "let":
             args = arguments.to_python_list()
             if len(args) != 2:
@@ -172,11 +176,11 @@ def eval_function_application(name: LispSymbol, arguments: LispList, scope: Scop
             foo = scope.read_symbol(name)
             given_args = arguments.to_python_list()
             scope.begin_block()
-            
+
             if not isinstance(foo, LispList):
                 raise Exception(
                     f"Function {name} not defined")
-            
+
             foo_args, *foo_body = foo.to_python_list()
             current_state = name
 
@@ -184,7 +188,8 @@ def eval_function_application(name: LispSymbol, arguments: LispList, scope: Scop
             #       not in the definition of the function 'defun'
             if not isinstance(foo_args, LispList):
                 raise Exception(
-                    f"Bad definition of function {name}, the syntax for defun is: "
+                    f"Bad definition of function {
+                        name}, the syntax for defun is: "
                     + "(defun name (parameter-list) body)")
             foo_args = foo_args.to_python_list()
 
@@ -194,11 +199,11 @@ def eval_function_application(name: LispSymbol, arguments: LispList, scope: Scop
                     f"{name} expects {len(foo_args)} arguments, were given {len(given_args)}")
 
             for i in range(len(foo_args)):
-                arg = foo_args[i] # scope only works if I do this
+                arg = foo_args[i]  # scope only works if I do this
                 if not isinstance(arg, LispSymbol):
                     raise Exception(
                         f"Bad argument {arg} from function {name}, all arguments must be symbols")
-                
+
                 eval_arg = eval_expression(given_args[i], scope, screen)
                 scope.create_symbol(arg, eval_arg, SymbolType.VARIABLE)
 
@@ -207,6 +212,8 @@ def eval_function_application(name: LispSymbol, arguments: LispList, scope: Scop
             return result
 
 # Returns a list of the n operands for addition, subtraction and multiplication
+
+
 def arithmetic_helper(operation: str, arguments: LispList, scope: Scope, screen: Screen) -> list[int]:
     operators: list[int] = []
     for expr in arguments.to_python_list():
@@ -217,21 +224,37 @@ def arithmetic_helper(operation: str, arguments: LispList, scope: Scope, screen:
         operators.append(operator.numberValue)
     return operators
 
-def print_scope(scope: Scope):
-    print(scope)
 
 def print_ast(name: LispSymbol, arguments: LispList, scope: Scope):
     global ast_backup
     global current_state
-    result = ""
     temp = LispNonEmptyList(name, arguments)
-    print(f"Expression: {temp}")
-    print(f"Current State: {current_state}")
-    print("-----------------------------\n")
 
+    result = ""
+    result += f"Expression: {temp}\n"
+    result += f"Current State: {current_state}\n"
     for node in ast_backup:
         result += node.__str__() + "\n"
-    
-    print(result)
-    print("-----------------------------\n")
-    print_scope(scope)
+
+    print_side_by_side(result, str(scope))
+
+
+def print_side_by_side(left: str, right: str):
+    leftLines = left.split("\n")
+    rightLines = right.split("\n")
+
+    maxLeftWidth = max(map(lambda line: len(line), leftLines))
+
+    for i in range(max(len(leftLines), len(rightLines))):
+        if i < len(leftLines):
+            neededPadding = maxLeftWidth - len(leftLines[i])
+            print(leftLines[i] + " " * neededPadding, end="")
+        else:
+            print(" " * maxLeftWidth, end="")
+
+        print(" | ", end="")
+
+        if i < len(rightLines):
+            print(rightLines[i], end="")
+
+        print()  # Break line
