@@ -6,21 +6,26 @@ from functools import reduce
 
 saved: bool = False
 ast_backup: list[LispValue]
-code_backup: str
 current_state: LispSymbol
 
 hash_code: dict[str, list[LispValue]] = {}
 
 
 def eval(ast: list[LispValue], scope: Scope, screen: Screen, code: str = "") -> LispValue:
+    result = eval_recursive(ast, scope, screen, code)
+    if isinstance(screen, TestScreen):
+        print_ast(LispSymbol("global"), LispEmptyList(), scope, screen)
+
+    return result
+
+
+def eval_recursive(ast: list[LispValue], scope: Scope, screen: Screen, code: str = "") -> LispValue:
     global ast_backup
     global saved
-    global code_backup
     global current_state
 
     if not saved:
         ast_backup = ast
-        code_backup = code
         current_state = LispSymbol("global")
         hash_code[current_state.symbolName] = ast
         saved = True
@@ -28,12 +33,6 @@ def eval(ast: list[LispValue], scope: Scope, screen: Screen, code: str = "") -> 
     last_value = eval_expression(ast[0], scope, screen)
     for expression in ast[1:]:
         last_value = eval_expression(expression, scope, screen)
-
-    if current_state.symbolName == "display":
-        if isinstance(screen, TestScreen):
-            print("Screen Contents:")
-            print(screen.get_contents())
-            print("-------------------------")
 
     return last_value
 
@@ -65,9 +64,8 @@ def eval_expression(expr: LispValue, scope: Scope, screen: Screen) -> LispValue:
 
 
 def eval_function_application(name: LispSymbol, arguments: LispList, scope: Scope, screen: Screen) -> LispValue:
-    print("\n"*30)
-    print_ast(name, arguments, scope)
-    input()
+    if isinstance(screen, TestScreen):
+        print_ast(name, arguments, scope, screen)
 
     match name.symbolName:
         case "+":
@@ -225,32 +223,48 @@ def arithmetic_helper(operation: str, arguments: LispList, scope: Scope, screen:
     return operators
 
 
-def print_ast(name: LispSymbol, arguments: LispList, scope: Scope):
+def print_ast(name: LispSymbol, arguments: LispList, scope: Scope, screen: TestScreen):
     global ast_backup
     global current_state
     temp = LispNonEmptyList(name, arguments)
 
     result = ""
-    result += f"Expression: {temp}\n"
-    result += f"Current State: {current_state}\n"
+    result += f"Expression:    {temp}\n"
+    result += f"Current Scope: {current_state}\n\n\n"
     for node in ast_backup:
         result += node.__str__() + "\n"
 
-    print_side_by_side(result, str(scope))
+    print("\n"*30)
+    print_side_by_side_by_side(
+        result,
+        "Output:\n\n" + screen.get_contents(),
+        str(scope),
+    )
+    input()  # Pause
 
 
-def print_side_by_side(left: str, right: str):
+def print_side_by_side_by_side(left: str, middle: str, right: str):
     leftLines = left.split("\n")
+    middleLines = middle.split("\n")
     rightLines = right.split("\n")
 
     maxLeftWidth = max(map(lambda line: len(line), leftLines))
+    maxMiddleWidth = max(map(lambda line: len(line), middleLines))
 
-    for i in range(max(len(leftLines), len(rightLines))):
+    for i in range(max(len(leftLines), len(middleLines))):
         if i < len(leftLines):
             neededPadding = maxLeftWidth - len(leftLines[i])
             print(leftLines[i] + " " * neededPadding, end="")
         else:
             print(" " * maxLeftWidth, end="")
+
+        print(" | ", end="")
+
+        if i < len(middleLines):
+            neededPadding = maxMiddleWidth - len(middleLines[i])
+            print(middleLines[i] + " " * neededPadding, end="")
+        else:
+            print(" " * maxMiddleWidth, end="")
 
         print(" | ", end="")
 

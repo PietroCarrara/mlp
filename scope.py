@@ -54,7 +54,7 @@ class Scope:
                                       SymbolType.VARIABLE else "()") + "\n"
             result += "-----------------------------\n"
             i += 1
-        return result
+        return result.removesuffix("-----------------------------\n")
 
 
 var_count: int = 0
