@@ -193,7 +193,7 @@ class FinalInterpreterTests(unittest.TestCase):
         screen = TestScreen()
 
         ast = parse(program)
-        eval(ast, Scope(), screen)
+        eval(ast, Scope(), screen, program)
         self.assertEqual(screen.get_contents(), "1\n3\n5\n8\n")
 
     def test_static_scope(self):
