@@ -186,9 +186,7 @@ def eval_function_application(name: LispSymbol, arguments: LispList, scope: Scop
             #       not in the definition of the function 'defun'
             if not isinstance(foo_args, LispList):
                 raise Exception(
-                    f"Bad definition of function {
-                        name}, the syntax for defun is: "
-                    + "(defun name (parameter-list) body)")
+                    f"Bad definition of function {name}, the syntax for defun is: (defun name (parameter-list) body)")
             foo_args = foo_args.to_python_list()
 
             # Check if user passed the needed number of parameters
@@ -205,7 +203,7 @@ def eval_function_application(name: LispSymbol, arguments: LispList, scope: Scop
                 eval_arg = eval_expression(given_args[i], scope, screen)
                 scope.create_symbol(arg, eval_arg, SymbolType.VARIABLE)
 
-            result = eval(foo_body, scope, screen)
+            result = eval_recursive(foo_body, scope, screen)
             scope.end_block()
             return result
 
@@ -230,7 +228,7 @@ def print_ast(name: LispSymbol, arguments: LispList, scope: Scope, screen: TestS
 
     result = ""
     result += f"Expression:    {temp}\n"
-    result += f"Current Scope: {" ".join(scope.names)}\n\n\n"
+    result += f"Current Scope: {' '.join(scope.names)}\n\n\n"
     for node in ast_backup:
         result += node.__str__() + "\n"
 
