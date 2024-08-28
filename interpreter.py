@@ -173,7 +173,7 @@ def eval_function_application(name: LispSymbol, arguments: LispList, scope: Scop
             global current_state
             foo = scope.read_symbol(name)
             given_args = arguments.to_python_list()
-            scope.begin_block()
+            scope.begin_block(name.symbolName)
 
             if not isinstance(foo, LispList):
                 raise Exception(
@@ -230,7 +230,7 @@ def print_ast(name: LispSymbol, arguments: LispList, scope: Scope, screen: TestS
 
     result = ""
     result += f"Expression:    {temp}\n"
-    result += f"Current Scope: {current_state}\n\n\n"
+    result += f"Current Scope: {" ".join(scope.names)}\n\n\n"
     for node in ast_backup:
         result += node.__str__() + "\n"
 

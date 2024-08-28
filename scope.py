@@ -15,6 +15,7 @@ class Scope:
         self.scopes: list[list[tuple[LispSymbol, LispValue, SymbolType]]] = [
             []
         ]
+        self.names: list[str] = ["global"]
 
     def read_symbol(self, symbol: LispSymbol) -> LispValue | None:
         # From most specific scope to least specific
@@ -38,11 +39,13 @@ class Scope:
 
         raise Exception(f"unknown symbol {symbol}")
 
-    def begin_block(self) -> None:
+    def begin_block(self, block_name: str) -> None:
         self.scopes.append([])
+        self.names.append(block_name)
 
     def end_block(self) -> None:
         self.scopes.pop()
+        self.names.pop()
 
     def __str__(self) -> str:
         i: int = 0
@@ -95,7 +98,7 @@ def bind_to_static_scope(ast: list[LispValue], scope: Scope) -> list[LispValue]:
 
         # Function declaration
         elif isinstance(node, LispNonEmptyList) and isinstance(node.first, LispSymbol) and node.first.symbolName == "defun":
-            scope.begin_block()
+            scope.begin_block("unused")
             args = node.to_python_list()
             # Well-formed function declaration is (defun name (args) (body))
             [operator, function_name, args_list, *function_body] = args
